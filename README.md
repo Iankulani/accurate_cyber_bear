@@ -3,11 +3,9 @@ Accurate Cyber Bear
 
 # 🐻 Accurate Cyber Bear v3.0.0
 
-[![GitHub release](https://img.shields.io/github/v/release/Iankulani/accurate-cyber-bear)](https://github.com/iank/accurate-cyber-bear/releases)
-[![Docker Pulls](https://img.shields.io/docker/pulls/Iankulani/accurate-cyber-bear)](https://hub.docker.com/r/iank/accurate-cyber-bear)
-[![License](https://img.shields.io/github/license/Iankulani/accurate-cyber-bear)](https://github.com/iank/accurate-cyber-bear/blob/main/LICENSE)
-[![Python Version](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org/downloads/)
-[![Code Coverage](https://codecov.io/gh/Iankulani/accurate-cyber-bear/branch/main/graph/badge.svg)](https://codecov.io/gh/iank/accurate-cyber-bear)
+[![GitHub stars](https://img.shields.io/github/stars/Iankulani/accurate_cyber_bear)](https://github.com/Iankulani/accurate_cyber_bear/stargazers)
+[![GitHub issues](https://img.shields.io/github/issues/Iankulani/accurate_cyber_bear)](https://github.com/Iankulani/accurate_cyber_bear/issues)
+[![Docker Image Size](https://img.shields.io/docker/image-size/iankulani/accurate_cyber_bear/latest)](https://hub.docker.com/r/iankulani/accurate_cyber_bear)
 
 **Ultimate Cybersecurity Command Center with Multi-Platform Integration**
 
