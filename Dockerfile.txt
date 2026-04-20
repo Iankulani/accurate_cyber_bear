@@ -1,0 +1,97 @@
+# Multi-stage build for Accurate Cyber Bear
+# Stage 1: Builder
+FROM alpine:3.19 as builder
+
+# Install build dependencies
+RUN apk add --no-cache \
+    python3 \
+    py3-pip \
+    python3-dev \
+    gcc \
+    musl-dev \
+    libffi-dev \
+    openssl-dev \
+    cargo \
+    rust \
+    nmap \
+    nikto \
+    curl \
+    git \
+    make \
+    tcpdump \
+    net-tools \
+    iproute2 \
+    iptables \
+    tshark
+
+# Set working directory
+WORKDIR /build
+
+# Copy requirements first for better caching
+COPY requirements.txt .
+
+# Install Python packages
+RUN pip3 install --no-cache-dir --upgrade pip && \
+    pip3 install --no-cache-dir -r requirements.txt
+
+# Stage 2: Runtime
+FROM alpine:3.19
+
+# Install runtime dependencies
+RUN apk add --no-cache \
+    python3 \
+    py3-pip \
+    nmap \
+    nikto \
+    curl \
+    tcpdump \
+    net-tools \
+    iproute2 \
+    iptables \
+    tshark \
+    sudo \
+    bash \
+    openssh-client \
+    bind-tools \
+    util-linux \
+    procps
+
+# Create non-root user
+RUN addgroup -g 1000 cyberbear && \
+    adduser -D -u 1000 -G cyberbear cyberbear && \
+    echo "cyberbear ALL=(ALL) NOPASSWD: /sbin/iptables, /usr/sbin/iptables" >> /etc/sudoers
+
+# Create necessary directories
+RUN mkdir -p /app /app/data /app/logs /app/config /app/reports /app/wordlists && \
+    chown -R cyberbear:cyberbear /app
+
+# Copy Python packages from builder
+COPY --from=builder /usr/lib/python3.11/site-packages /usr/lib/python3.11/site-packages
+COPY --from=builder /usr/bin /usr/bin
+
+# Copy application files
+COPY --chown=cyberbear:cyberbear accurate_cyber_bear.py /app/
+COPY --chown=cyberbear:cyberbear scripts/docker-entrypoint.sh /app/
+COPY --chown=cyberbear:cyberbear config/.env.example /app/config/.env
+
+# Make scripts executable
+RUN chmod +x /app/docker-entrypoint.sh
+
+# Set working directory
+WORKDIR /app
+
+# Switch to non-root user
+USER cyberbear
+
+# Expose ports
+EXPOSE 8080 8081 5000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8080/ || exit 1
+
+# Entrypoint
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
+
+# Default command
+CMD ["python3", "/app/accurate_cyber_bear.py"]

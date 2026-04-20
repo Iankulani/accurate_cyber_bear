@@ -1,0 +1,148 @@
+version: '3.8'
+
+services:
+  cyber-bear:
+    build: .
+    container_name: accurate-cyber-bear
+    restart: unless-stopped
+    privileged: true  # Required for iptables and raw socket operations
+    ports:
+      - "8080:8080"   # Web Dashboard
+      - "8081:8081"   # API (optional)
+      - "5000:5000"   # Flask alternative
+    volumes:
+      # Persistent data storage
+      - cyber-bear-data:/app/.accurate_cyber_bear
+      - cyber-bear-logs:/app/logs
+      - cyber-bear-reports:/app/reports
+      - cyber-bear-wordlists:/app/wordlists
+      # Config mounts
+      - ./config:/app/config:ro
+      # Optional: Mount SSH keys
+      - ~/.ssh:/home/cyberbear/.ssh:ro
+    environment:
+      - CYBER_BEAR_ENV=production
+      - LOG_LEVEL=INFO
+      - WEB_PORT=8080
+      - API_PORT=8081
+      - ENABLE_DISCORD=false
+      - ENABLE_TELEGRAM=false
+      - ENABLE_SLACK=false
+      - ENABLE_IMESSAGE=false
+      - DATABASE_PATH=/app/.accurate_cyber_bear/cyber_bear.db
+      - CONFIG_PATH=/app/config
+      - TZ=UTC
+    env_file:
+      - config/.env
+    networks:
+      - cyber-bear-network
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Optional: PostgreSQL for production
+  postgres:
+    image: postgres:15-alpine
+    container_name: cyber-bear-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=cyberbear
+      - POSTGRES_USER=cyberbear
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-secure_password_change_me}
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - cyber-bear-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cyberbear"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Optional: Redis for caching and message queue
+  redis:
+    image: redis:7-alpine
+    container_name: cyber-bear-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis_secure_password}
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - cyber-bear-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Optional: Prometheus for metrics
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: cyber-bear-prometheus
+    restart: unless-stopped
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    ports:
+      - "9090:9090"
+    networks:
+      - cyber-bear-network
+
+  # Optional: Grafana for visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: cyber-bear-grafana
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./config/grafana-dashboards:/etc/grafana/provisioning/dashboards
+    ports:
+      - "3000:3000"
+    networks:
+      - cyber-bear-network
+    depends_on:
+      - prometheus
+
+networks:
+  cyber-bear-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  cyber-bear-data:
+    driver: local
+  cyber-bear-logs:
+    driver: local
+  cyber-bear-reports:
+    driver: local
+  cyber-bear-wordlists:
+    driver: local
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
