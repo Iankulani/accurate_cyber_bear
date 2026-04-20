@@ -228,6 +228,4 @@ pip install sphinx sphinx-rtd-theme
 cd docs
 make html
 ```
-
-
-
+[![Star History Chart](https://api.star-history.com/svg?repos=Iankulani/accurate_cyber_bear&type=Date)](https://star-history.com/#Iankulani/accurate_cyber_bear&Date)
