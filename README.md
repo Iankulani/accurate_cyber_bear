@@ -1,7 +1,10 @@
-# accurate_cyber_bear
-Accurate Cyber Bear 
-
 # 🐻 Accurate Cyber Bear v3.0.0
+
+<img width="636" height="524" alt="bear12" src="https://github.com/user-attachments/assets/e5ed469f-da94-40e9-8201-cd5cba5c4f09" />
+
+
+
+Accurate Cyber Bear 
 
 [![GitHub stars](https://img.shields.io/github/stars/Iankulani/accurate_cyber_bear)](https://github.com/Iankulani/accurate_cyber_bear/stargazers)
 [![GitHub issues](https://img.shields.io/github/issues/Iankulani/accurate_cyber_bear)](https://github.com/Iankulani/accurate_cyber_bear/issues)
